@@ -5,13 +5,16 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route('/')
-  .get(authController.protect, reviewController.getAllReviews)
+  .get(reviewController.getAllReviews)
   .post(
-    authController.protect,
     authController.restrictTo('user'),
+    reviewController.setTourUserIds,
     reviewController.createReview,
   );
 
-router.route('/:id').delete(reviewController.deleteReview);
-
+router
+  .route('/:id')
+  .get(reviewController.getReview)
+  .patch(authController.restrictTo('user'), reviewController.updateReview)
+  .delete(authController.restrictTo('user'), reviewController.deleteReview);
 module.exports = router;
