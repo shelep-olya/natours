@@ -1,8 +1,13 @@
 const appError = require('./../utils/app-error');
 const catchAsync = require('./../utils/catch-async');
-
 const User = require('./../models/userModel');
 const factory = require('./handlerFactory');
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach((el) => {
@@ -10,16 +15,6 @@ const filterObj = (obj, ...allowedFields) => {
   });
   return newObj;
 };
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   //create error if user post password data
@@ -36,7 +31,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true,
   });
-
   res.status(200).json({
     status: 'success',
     data: {
@@ -47,22 +41,13 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndDelete(req.user.id, { active: false });
-
   res.status(204).json({
     status: 'success',
     data: null,
   });
 });
 
-exports.getOneUser = (req, res) => {
-  try {
-    res.status(500).json({
-      status: 'error',
-      message: 'this route is not yet defined',
-    });
-  } catch (err) {
-    console.log(err.message);
-  }
-};
+exports.getAllUsers = factory.getAll(User);
+exports.getOneUser = factory.getOne(User);
 exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
