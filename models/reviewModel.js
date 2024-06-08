@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const Tour = require('./tourModel');
+
 const reviewSchema = new mongoose.Schema(
   {
     review: {
       type: String,
-      required: [true, 'Review cannot be empty'],
+      required: [true, 'Review can not be empty!'],
     },
     rating: {
       type: Number,
@@ -13,17 +14,17 @@ const reviewSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     tour: {
       type: mongoose.Schema.ObjectId,
       ref: 'Tour',
-      required: [true, 'Review must belong to a tour'],
+      required: [true, 'Review must belong to a tour.'],
     },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
-      required: [true, 'Review must have an author'],
+      required: [true, 'Review must belong to a user'],
     },
   },
   {
@@ -31,15 +32,18 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   // this.populate({
-  //   path: 'author',
-  //   select: 'name photo',
-  // }).populate({
   //   path: 'tour',
-  //   select: 'name',
+  //   select: 'name'
+  // }).populate({
+  //   path: 'user',
+  //   select: 'name photo'
   // });
-  // next();
+
   this.populate({
     path: 'user',
     select: 'name photo',
@@ -74,10 +78,25 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
     });
   }
 };
+
 reviewSchema.post('save', function () {
   // this points to current review
   this.constructor.calcAverageRatings(this.tour);
 });
 
+// findByIdAndUpdate
+// findByIdAndDelete
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.findOne();
+  // console.log(this.r);
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // await this.findOne(); does NOT work here, query has already executed
+  await this.r.constructor.calcAverageRatings(this.r.tour);
+});
+
 const Review = mongoose.model('Review', reviewSchema);
+
 module.exports = Review;
