@@ -1,6 +1,6 @@
 const User = require('./../models/userModel');
-const catchAsync = require('./../utils/catch-async');
-const AppError = require('./../utils/app-error');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
